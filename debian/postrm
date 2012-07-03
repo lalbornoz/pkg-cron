@@ -3,7 +3,7 @@ set -e
 
 # Conffiles that are now obsolete
 dpkg-maintscript-helper rm_conffile /etc/cron.monthly/standard "3.0pl1-113" -- "$@"
-dpkg-maintscript-helper rm_conffile /etc/cron.daily/standard "3.0pl1-123" -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/standard "3.0pl1-124" -- "$@"
 
 if [ "$1" = "purge" ]; then 
     rm -f /etc/cron.allow /etc/cron.deny
