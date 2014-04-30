@@ -567,6 +567,7 @@ child_process(e, u)
 	fprintf(mail, "Date: %s\n",
 			arpadate(&StartTime));
 # endif /* MAIL_DATE */
+	fprintf(mail, "MIME-Version: 1.0\n");
 	if ( content_type == 0L ) {
 		fprintf(mail, "Content-Type: text/plain; charset=%s\n",
 				cron_default_mail_charset
@@ -595,6 +596,8 @@ child_process(e, u)
 
 		fprintf(mail,"Content-Transfer-Encoding: %s\n", content_transfer_encoding);
 	}
+	else
+		fprintf(mail, "Content-Transfer-Encoding: 8bit\n");
 
 	for (env = e->envp;  *env;  env++)
 		fprintf(mail, "X-Cron-Env: <%s>\n",
