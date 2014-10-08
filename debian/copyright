@@ -10,8 +10,8 @@ Files: *
 Copyright: 1988, 1990, 1993, 1994, Paul Vixie <paul@vix.com>
            1994, Ian Jackson <ian@davenant.greenend.org.uk>
            1996-2005, Steve Greenland <stevegr@debian.org>
-           2005-2006, 2008-2010, Javier Fernández-Sanguino Peña <jfs@debian.org>
-           2010-2011, Christian Kastner <debian@kvr.at>
+           2005-2006, 2008-2012, Javier Fernández-Sanguino Peña <jfs@debian.org>
+           2010-2011, 2014 Christian Kastner <debian@kvr.at>
            Numerous contributions via the Debian BTS copyright their respective authors
 License: Paul Vixie's license
 
