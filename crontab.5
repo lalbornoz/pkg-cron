@@ -278,7 +278,7 @@ SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # m h dom mon dow user	command
-17 * * * *  root  cd / && run-parts --report /etc/cron.hourly
+17 * * * *  root  cd / && run-parts \-\-report /etc/cron.hourly
 25 6 * * *  root  test \-x /usr/sbin/anacron || ( cd / && run-parts \-\-report /etc/cron.daily )
 47 6 * * 7  root  test \-x /usr/sbin/anacron || ( cd / && run-parts \-\-report /etc/cron.weekly )
 52 6 1 * *  root  test \-x /usr/sbin/anacron || ( cd / && run-parts \-\-report /etc/cron.monthly )
@@ -339,7 +339,7 @@ For example, to run a program the last Saturday of every month you could use
 the following wrapper code:
 
 .nf
-0 4 * * Sat   [ "$(date +\\%e)" = "`ncal | grep $(date +\\%a | sed  -e 's/.$//') | sed -e 's/^.*\\s\\([0-9]\\+\\)\\s*$/\\1/'`" ] && echo "Last Saturday" && program_to_run
+0 4 * * Sat   [ "$(date +\\%e)" = "`ncal | grep $(date +\\%a | sed \-e 's/.$//') | sed \-e 's/^.*\\s\\([0-9]\\+\\)\\s*$/\\1/'`" ] && echo "Last Saturday" && program_to_run
 .fi
 
 
