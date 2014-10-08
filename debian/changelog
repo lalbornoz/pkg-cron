@@ -1,3 +1,11 @@
+cron (3.0pl1-124.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Add pam_loginuid module to the PAM session stack (Closes: #677443)
+  * Add systemd service file. Thanks to Michael Stapelberg (Closes: #652440)
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 25 May 2014 21:21:19 +0200
+
 cron (3.0pl1-124) unstable; urgency=medium
 
   [ Release targeted to Wheezy including fixes for critical/important bugs ]
