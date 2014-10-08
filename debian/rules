@@ -1,6 +1,12 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
+# The package build supports three optional features. To enable/disable them,
+# modify DEB_BUILD_OPTIONS accordingly:
+#  * PAM support        default: ON     disable: DEB_BUILD_OPTIONS=nopam
+#  * SELinux support    default: ON     disable: DEB_BUILD_OPTIONS=noselinux
+#  * audit support      default: OFF    enable:  DEB_BUILD_OPTIONS=withaudit
+#
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -8,6 +14,7 @@
 # Set system type (Linux, HURD, etc.)
 DEB_HOST_ARCH_OS = $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
+# Enable cross-compiling support
 DEB_HOST_GNU_TYPE  = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE = $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
@@ -40,13 +47,14 @@ ifeq (,$(findstring noselinux,$(DEB_BUILD_OPTIONS)))
     SELINUX_LIBS = -lselinux
     export SELINUX_DEFS SELINUX_LIBS
 endif
+
 # audit is disabled by default
 ifneq (,$(findstring withaudit,$(DEB_BUILD_OPTIONS)))
     AUDIT_DEFS = -DWITH_AUDIT
     AUDIT_LIBS = -laudit
     export AUDIT_DEFS AUDIT_LIBS
 endif
-endif
+endif # Linux
 
 
 %:
