@@ -435,6 +435,13 @@ get_range(bits, low, high, names, ch, file)
 		if (ch != '-') {
 			/* not a range, it's a single number.
 			 */
+
+			/* Unsupported syntax: Step specified without range,
+			   eg:   1/20 * * * * /bin/echo "this fails"
+			 */
+			if (ch == '/')
+				return EOF;
+
 			if (EOF == set_element(bits, low, high, num1))
 				return EOF;
 			return ch;
