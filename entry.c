@@ -31,7 +31,7 @@ static char rcsid[] = "$Id: entry.c,v 2.12 1994/01/17 03:20:37 vixie Exp $";
 
 typedef	enum ecode {
 	e_none, e_minute, e_hour, e_dom, e_month, e_dow,
-	e_cmd, e_timespec, e_username
+	e_cmd, e_timespec, e_username, e_cmd_len
 } ecode_e;
 
 static char	get_list __P((bitstr_t *, int, int, char *[], int, FILE *)),
@@ -50,6 +50,7 @@ static char *ecodes[] =
 		"bad command",
 		"bad time specifier",
 		"bad username",
+		"command too long",
 	};
 
 
@@ -315,9 +316,18 @@ load_entry(file, error_func, pw, envp)
 	/* Everything up to the next \n or EOF is part of the command...
 	 * too bad we don't know in advance how long it will be, since we
 	 * need to malloc a string for it... so, we limit it to MAX_COMMAND.
+	 *
+	 * To err on the side of caution, if the command string length is
+	 * equal to MAX_COMMAND, we will assume that the command has been
+	 * truncated and generate an error.
+	 *
 	 * XXX - should use realloc().
-	 */ 
+	 */
 	ch = get_string(cmd, MAX_COMMAND, file, "\n");
+	if (strnlen(cmd, MAX_COMMAND) == MAX_COMMAND - 1) {
+		ecode = e_cmd_len;
+		goto eof;
+	}
 
 	/* a file without a \n before the EOF is rude, so we'll complain...
 

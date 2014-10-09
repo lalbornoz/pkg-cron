@@ -135,7 +135,8 @@ followed by a command, followed by a newline character ('\\n').
 The system crontab (/etc/crontab) uses the same format, except that
 the username for the command is specified after the time and
 date fields and before the command. The fields may be separated
-by spaces or tabs.
+by spaces or tabs. The maximum permitted length for the command field is
+998 characters.
 .PP
 Commands are executed by
 .IR cron (8)
