@@ -28,6 +28,7 @@ static char rcsid[] = "$Id: cron.c,v 2.11 1994/01/15 20:43:43 vixie Exp $";
 
 #include <sys/types.h>
 #include <fcntl.h>
+#include <libgen.h>
 
 static	void	usage __P((void)),
 		run_reboot_jobs __P((cron_db *)),
@@ -65,7 +66,7 @@ main(argc, argv)
 	cron_db	database;
 	char *cs;
 
-	ProgramName = argv[0];
+	ProgramName = basename(argv[0]);
 
 #if defined(BSD)
 	setlinebuf(stdout);

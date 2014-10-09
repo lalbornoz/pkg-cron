@@ -31,6 +31,7 @@ static char rcsid[] = "$Id: crontab.c,v 2.13 1994/01/17 03:20:37 vixie Exp $";
 #include "cron.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <signal.h>
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -100,7 +101,7 @@ main(argc, argv)
 	int	exitstatus;
 
 	Pid = getpid();
-	ProgramName = argv[0];
+	ProgramName = basename(argv[0]);
 
 #if defined(POSIX)
 	setlocale(LC_ALL, "");
