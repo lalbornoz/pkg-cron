@@ -561,7 +561,8 @@ child_process(e, u)
 	fprintf(mail, "From: root (Cron Daemon)\n");
 	fprintf(mail, "To: %s\n", mailto);
 	fprintf(mail, "Subject: Cron <%s@%s> %s%s\n",
-			usernm, first_word(hostname, "."),
+			usernm,
+			fqdn_in_subject ? hostname : first_word(hostname, "."),
 			e->cmd, status?" (failed)":"");
 # if defined(MAIL_DATE)
 	fprintf(mail, "Date: %s\n",

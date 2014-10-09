@@ -305,6 +305,7 @@ static long GMToff;
 
 int	stay_foreground;
 int     lsbsysinit_mode;
+int     fqdn_in_subject;
 int     log_level = 1;
 char    cron_default_mail_charset[MAX_ENVSTR] = "";
 
@@ -321,6 +322,7 @@ extern	char	*copyright[],
 		*DowNames[],
 		*ProgramName;
 extern  int     lsbsysinit_mode;
+extern  int     fqdn_in_subject;
 extern  int     log_level;
 extern	int	LineNumber;
 extern	time_t	StartTime;

@@ -470,8 +470,9 @@ parse_args(argc, argv)
 	log_level = 1;
 	stay_foreground = 0;
         lsbsysinit_mode = 0;
+        fqdn_in_subject = 0;
 
-	while (EOF != (argch = getopt(argc, argv, "lfx:L:"))) {
+	while (EOF != (argch = getopt(argc, argv, "lfnx:L:"))) {
 		switch (argch) {
 		default:
 			usage();
@@ -482,12 +483,15 @@ parse_args(argc, argv)
 			if (!set_debug_flags(optarg))
 				usage();
 			break;
-                case 'l':
-                    lsbsysinit_mode = 1;
-                    break;
+		case 'l':
+			lsbsysinit_mode = 1;
+			break;
+		case 'n':
+			fqdn_in_subject = 1;
+			break;
 		case 'L':
-		    log_level = atoi(optarg);
-		    break;
+			log_level = atoi(optarg);
+			break;
 		}
 	}
 }
