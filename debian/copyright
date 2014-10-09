@@ -13,7 +13,7 @@ Copyright: 1988, 1990, 1993, 1994, Paul Vixie <paul@vix.com>
            2005-2006, 2008-2012, Javier Fernández-Sanguino Peña <jfs@debian.org>
            2010-2011, 2014 Christian Kastner <debian@kvr.at>
            Numerous contributions via the Debian BTS copyright their respective authors
-License: Paul Vixie's license
+License: Paul-Vixie's-license
 
 Files: database.c
 Copyright: 1988, 1990, 1993, 1994 Paul Vixie <paul@vix.com>
@@ -21,7 +21,7 @@ Copyright: 1988, 1990, 1993, 1994 Paul Vixie <paul@vix.com>
            2003, Clint Adams <schizo@debian.org>
            2010-2011, Christian Kastner <debian@kvr.at>
            2011, Red Hat, Inc.
-License: Paul Vixie's license and GPL-2+ and ISC
+License: Paul-Vixie's-license and GPL-2+ and ISC
 
 Files: debian/examples/cron-stats.pl
 Copyright: 2006, Javier Fernández-Sanguino Peña <jfs@debian.org>
@@ -35,7 +35,7 @@ Files: debian/examples/crontab2english.pl
 Copyright: 2001, Sean M. Burke
 License: Artistic
 
-License: Paul Vixie's license
+License: Paul-Vixie's-license
  Distribute freely, except: don't remove my name from the source or
  documentation (don't take credit for my work), mark your changes (don't
  get me blamed for your possible bugs), don't alter or remove this
