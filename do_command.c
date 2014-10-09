@@ -542,7 +542,7 @@ child_process(e, u)
 	}
 
 	register FILE	*mail = NULL;
-	register int	bytes = 1;
+	register int	bytes = 0;
 
 	register char	**env;
 	char    	**jobenv = build_env(e->envp); 
@@ -616,6 +616,7 @@ child_process(e, u)
 			ret = fwrite(buf, 1, remain, mail);
 			if (ret > 0) {
 				remain -= ret;
+				bytes += ret;
 				continue;
 			}
 			// XXX error
@@ -633,9 +634,8 @@ child_process(e, u)
 	if (status) {
 		char buf[MAX_TEMPSTR];
 		snprintf(buf, MAX_TEMPSTR,
-				"mailed %d byte%s of output; "
-				"but got status 0x%04x, "
-				"\n",
+				"mailed %d byte%s of output "
+				"but got status 0x%04x from MTA\n",
 				bytes, (bytes==1)?"":"s", status);
 		log_it(usernm, getpid(), "MAIL", buf);
 	}
