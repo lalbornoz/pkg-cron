@@ -1,3 +1,47 @@
+cron (3.0pl1-125) unstable; urgency=medium
+
+  * Acknowledge NMUs. Thanks, Laurent Bigonville and Ansgar Burchardt.
+    Closes: #749271
+
+  [ Christian Kastner ]
+  * debian/control:
+    - Bump Standards-Version to 3.9.6 (no changes needed)
+    - Canonicalize Vcs-* URLs
+  * debian/copyright:
+    - Bump years
+    - Don't use spaces in License short name
+  * debian/source/lintian-overrides:
+    - Drop overrides from pre-UTF-8 debian/control era
+  * debian/rules:
+    - Extend documentation
+  * debian/cron.init:
+    - Include winbind in Should-Start/Stop. Closes: #732203
+  * crontab.5:
+    - Don't use hyphen as a minus sign
+  * cron.8:
+    - Drop stray words in cron.8. Thanks, Regid Ichira! Closes: #702091
+    - Fix misspelled 'sytem'. Thanks, green! Closes: #753775
+  * cron.c,crontab.c:
+    - Use basename of argv[0] as syslog tag. Closes: #752750
+  * entry.c:
+    - Detect invalid entry: step specified without a range. Thanks,
+      Justin T. Pryzby! Closes: #733478
+    - Error out when a command field is too long instead of silently
+      truncating it. Closes: #686223
+  * do_command.c:
+    - Fix initialization and increment of mailed bytes counter.
+      Closes: #691488
+  * cron.c, do_command.c:
+    - Add an option -n to include FQDN in mail subject. Closes: #570423
+
+  [ brian m. carlson ]
+  * config.h, do_command.c:
+    - Send proper 8-bit emails by including an appropriate MIME-Version and
+      adjusting the Content-Transfer-Encoding header accordingly.
+      Closes: #694686
+
+ -- Christian Kastner <debian@kvr.at>  Fri, 10 Oct 2014 15:58:18 +0200
+
 cron (3.0pl1-124.2) unstable; urgency=medium
 
   * Non-maintainer upload.
