@@ -27,7 +27,7 @@ cron (3.0pl1-125) unstable; urgency=medium
     - Detect invalid entry: step specified without a range. Thanks,
       Justin T. Pryzby! Closes: #733478
     - Error out when a command field is too long instead of silently
-      truncating it. Closes: #686223
+      truncating it. Closes: #686223, LP: #826702
   * do_command.c:
     - Fix initialization and increment of mailed bytes counter.
       Closes: #691488
