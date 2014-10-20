@@ -29,6 +29,7 @@ static char rcsid[] = "$Id: cron.c,v 2.11 1994/01/15 20:43:43 vixie Exp $";
 #include <sys/types.h>
 #include <fcntl.h>
 #include <libgen.h>
+#include <strings.h>
 
 static	void	usage __P((void)),
 		run_reboot_jobs __P((cron_db *)),
@@ -106,7 +107,7 @@ main(argc, argv)
        /* Except that "US-ASCII" is preferred to "ANSI_x3.4-1968" in MIME,
         * even though "ANSI_x3.4-1968" is the official charset name. */
        if ( ( cs = nl_langinfo( CODESET ) ) != 0L && 
-               strcmp(cs, "ANSI_x3.4-1968") != 0 )
+               strcasecmp(cs, "ANSI_x3.4-1968") != 0 )
            strncpy( cron_default_mail_charset, cs, MAX_ENVSTR );
        else
            strcpy( cron_default_mail_charset, "US-ASCII" );

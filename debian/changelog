@@ -23,6 +23,9 @@ cron (3.0pl1-125) unstable; urgency=medium
     - Fix misspelled 'sytem'. Thanks, green! Closes: #753775
   * cron.c,crontab.c:
     - Use basename of argv[0] as syslog tag. Closes: #752750
+  * cron.c:
+     - Use case-insensitive comparison in charset selection. Thanks,
+       Malcolm Scott! LP: #1169160
   * entry.c:
     - Detect invalid entry: step specified without a range. Thanks,
       Justin T. Pryzby! Closes: #733478
