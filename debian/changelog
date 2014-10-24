@@ -1,3 +1,10 @@
+cron (3.0pl1-126) unstable; urgency=low
+
+  * Packaging (general): removed unused files from the source that had been
+    already removed in 3.0pl1-117 but got reintroduced due to a merge.
+
+ -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Fri, 24 Oct 2014 23:01:59 +0200
+
 cron (3.0pl1-125) unstable; urgency=medium
 
   * Acknowledge NMUs. Thanks, Laurent Bigonville and Ansgar Burchardt.
