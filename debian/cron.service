@@ -3,7 +3,8 @@ Description=Regular background program processing daemon
 Documentation=man:cron(8)
 
 [Service]
-ExecStart=/usr/sbin/cron -f
+EnvironmentFile=-/etc/default/cron
+ExecStart=/usr/sbin/cron -f $READ_ENV $EXTRA_OPTS
 IgnoreSIGPIPE=false
 
 [Install]
