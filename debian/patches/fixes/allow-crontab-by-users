@@ -1,0 +1,36 @@
+Subject: Allow use of crontab by users
+Last-Update: 2010-04-11
+
+Remove a bug denying non-privileged users crontab(1).
+
+Debian-Bug: http://bugs.debian.org/8702
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:28.844435899 +0200
++++ patched/crontab.c	2010-05-06 18:18:30.213560954 +0200
+@@ -156,18 +156,19 @@
+ 				usage("bad debug option");
+ 			break;
+ 		case 'u':
+-			if (getuid() != ROOT_UID)
+-			{
+-				fprintf(stderr,
+-					"must be privileged to use -u\n");
+-				exit(ERROR_EXIT);
+-			}
+ 			if (!(pw = getpwnam(optarg)))
+ 			{
+ 				fprintf(stderr, "%s:  user `%s' unknown\n",
+ 					ProgramName, optarg);
+ 				exit(ERROR_EXIT);
+ 			}
++			if ((getuid() != ROOT_UID) &&
++			    (getuid() != pw->pw_uid))
++			{
++				fprintf(stderr,
++					"must be privileged to use -u\n");
++				exit(ERROR_EXIT);
++			}
+ 			free(User);
+ 			if ((User=strdup(pw->pw_name)) == NULL) {
+ 			        fprintf(stderr, "Memory allocation error\n");

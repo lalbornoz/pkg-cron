@@ -1,0 +1,204 @@
+Subject: Debian logging configuration
+Last-Update: 2010-04-11
+
+Tweak logging to Debian. Among other (smaller) things:
+  * Log to syslog only
+  * Log broken system crontabs (user crontabs are checked by crontab(1))
+  * Log messages added where Debian considered them nice-to-have
+
+Bug-Debian: http://bugs.debian.org/76625
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/misc.c
+===================================================================
+--- patched.orig/misc.c	2010-05-06 18:18:46.637435837 +0200
++++ patched/misc.c	2010-05-06 18:18:50.298436009 +0200
+@@ -281,7 +281,8 @@
+ 			log_it("CRON", getpid(), "DEATH", buf);
+ 			exit(ERROR_EXIT);
+ 		}
+-
++		snprintf(buf, MAX_TEMPSTR, "pidfile fd = %d", fd);
++		log_it("CRON", getpid(), "INFO", buf);
+ 		(void) fcntl(fd, F_SETFD, 1);
+ 	}
+ 
+@@ -293,6 +294,7 @@
+ 	/* abandon fd and fp even though the file is open. we need to
+ 	 * keep it open and locked, but we don't need the handles elsewhere.
+ 	 */
++	
+ }
+ 
+ /* get_char(file) : like getc() but increment LineNumber on newlines
+@@ -458,17 +460,14 @@
+ 	char	*event;
+ 	char	*detail;
+ {
+-	PID_T			pid = xpid;
+ #if defined(LOG_FILE)
++	PID_T			pid = xpid;
+ 	char			*msg;
+ 	TIME_T			now = time((TIME_T) 0);
+ 	register struct tm	*t = localtime(&now);
+ 	int 			msg_size;
+ #endif /*LOG_FILE*/
+ 
+-#if defined(SYSLOG)
+-	static int		syslog_open = 0;
+-#endif
+ 
+ #if defined(LOG_FILE)
+ 	/* we assume that MAX_TEMPSTR will hold the date, time, &punctuation.
+@@ -513,21 +512,24 @@
+ #endif /*LOG_FILE*/
+ 
+ #if defined(SYSLOG)
+-	if (!syslog_open) {
+-		/* we don't use LOG_PID since the pid passed to us by
+-		 * our client may not be our own.  therefore we want to
+-		 * print the pid ourselves.
+-		 */
+-# ifdef LOG_DAEMON
+-		openlog(ProgramName, LOG_PID, LOG_CRON);
++
++
++	    /* we don't use LOG_PID since the pid passed to us by
++	     * our client may not be our own.  therefore we want to
++	     * print the pid ourselves.
++	     */
++	    /* SteveG says: That comment is not consistent with the
++	       code, and makes no sense -- I suspect it's a remnant
++	       of a cut-n-paster... */
++# ifdef LOG_CRON
++	openlog(ProgramName, LOG_PID, LOG_CRON);
+ # else
+-		openlog(ProgramName, LOG_PID);
++	openlog(ProgramName, LOG_PID);
+ # endif
+-		syslog_open = TRUE;		/* assume openlog success */
+-	}
+-
+-	syslog(LOG_INFO, "(%s) %s (%s)\n", username, event, detail);
++	  
++	syslog(LOG_INFO, "(%s) %s (%s)", username, event, detail);
+ 
++	closelog();
+ #endif /*SYSLOG*/
+ 
+ #if DEBUGGING
+@@ -541,10 +543,15 @@
+ 
+ void
+ log_close() {
++#if defined(LOG_FILE)
+ 	if (LogFD != ERR) {
+ 		close(LogFD);
+ 		LogFD = ERR;
+ 	}
++#endif
++#if defined(SYSLOG)
++	closelog();
++#endif
+ }
+ 
+ 
+Index: patched/pathnames.h
+===================================================================
+--- patched.orig/pathnames.h	2010-05-06 18:18:49.631436001 +0200
++++ patched/pathnames.h	2010-05-06 18:18:50.298436009 +0200
+@@ -54,7 +54,7 @@
+ #define	ALLOW_FILE	"allow"		/*-*/
+ #define DENY_FILE	"deny"		/*-*/
+ #endif
+-#define LOG_FILE	"log"		/*-*/
++/* #define LOG_FILE	"log"		  -*/
+ 
+ 			/* where should the daemon stick its PID?
+ 			 */
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:48.877435845 +0200
++++ patched/do_command.c	2010-05-06 18:18:50.325296679 +0200
+@@ -257,9 +257,7 @@
+ 
+ 		/* that's the last thing we'll log.  close the log files.
+ 		 */
+-#ifdef SYSLOG
+-		closelog();
+-#endif
++		log_close();
+ 
+ 		/* get new pgrp, void tty, etc.
+ 		 */
+Index: patched/user.c
+===================================================================
+--- patched.orig/user.c	2010-05-06 18:18:48.877435845 +0200
++++ patched/user.c	2010-05-06 18:18:50.325435826 +0200
+@@ -23,8 +23,11 @@
+  */
+ 
+ 
++#include <syslog.h>
++#include <string.h>
+ #include "cron.h"
+ 
++
+ #ifdef WITH_SELINUX
+ #include <selinux/context.h>
+ #include <selinux/selinux.h>
+@@ -127,6 +130,32 @@
+ #endif
+ 
+ 
++#ifdef DEBIAN
++/* Function used to log errors in crontabs from cron daemon. (User
++   crontabs are checked before they're accepted, but system crontabs
++   are not. */
++static char *err_user=NULL;
++
++void
++crontab_error(msg)
++     char *msg;
++{
++  const char *fn;
++  /* Figure out the file name from the username */
++  if (0 == strcmp(err_user,"*system*")) {
++    syslog(LOG_ERR|LOG_CRON,"Error: %s; while reading %s", msg, SYSCRONTAB);
++  } else if (0 == strncmp(err_user,"*system*",8)) {
++    fn = err_user+8;
++    syslog(LOG_ERR|LOG_CRON,"Error: %s; while reading %s/%s", msg, 
++	   SYSCRONDIR,fn);
++  } else {
++    syslog(LOG_ERR|LOG_CRON, "Error: %s; while reading crontab for user %s",
++	   msg, err_user);
++  }
++}
++
++#endif
++
+ void
+ free_user(u)
+ 	user	*u;
+@@ -230,12 +259,21 @@
+ 			}
+ 			goto done;
+ 		case FALSE:
++#ifdef DEBIAN
++			err_user = fname;
++			e = load_entry(file, crontab_error, pw, envp);
++			err_user = NULL;
++#else
+ 			e = load_entry(file, NULL, pw, envp);
++#endif
+ 			if (e) {
+ 				e->next = u->crontab;
+ 				u->crontab = e;
+ 			} else {
+ 				/* stop processing on syntax error */
++				log_it(u->name, getpid(), "ERROR", "Syntax "
++					"error, this crontab file will be "
++					"ignored"); 
+ 				free_user(u);
+ 				u = NULL;
+ 				goto done;

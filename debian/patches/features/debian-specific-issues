@@ -1,0 +1,38 @@
+Subject: Debian-specific issues
+Last-Update: 2010-04-11
+
+Fix certain issues apparently specific to building on Debian.
+
+IMPORTANT NOTE: These appear to be *very* bogus and should be inspected
+further, so:
+
+NOT Acked
+Index: patched/misc.c
+===================================================================
+--- patched.orig/misc.c	2010-05-06 18:18:37.114561029 +0200
++++ patched/misc.c	2010-05-06 18:18:44.201560954 +0200
+@@ -667,7 +667,7 @@
+ #endif /*MAIL_DATE*/
+ 
+ 
+-#ifdef HAVE_SAVED_SUIDS
++#ifdef HAVE_SAVED_UIDS
+ static int save_euid;
+ int swap_uids() { save_euid = geteuid(); return seteuid(getuid()); }
+ int swap_uids_back() { return seteuid(save_euid); }
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:33.012435990 +0200
++++ patched/do_command.c	2010-05-06 18:18:44.201560954 +0200
+@@ -117,7 +117,11 @@
+ 	 * use wait() explictly.  so we have to disable the signal (which
+ 	 * was inherited from the parent).
+ 	 */
++#ifdef DEBIAN
++	(void) signal(SIGCHLD, SIG_DFL);
++#else
+ 	(void) signal(SIGCHLD, SIG_IGN);
++#endif
+ #else
+ 	/* on system-V systems, we are ignoring SIGCLD.  we have to stop
+ 	 * ignoring it now or the wait() in cron_pclose() won't work.

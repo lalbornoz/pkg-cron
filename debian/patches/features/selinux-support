@@ -1,0 +1,304 @@
+Subject: SELinux support
+Author: Manoj Srivastava <srivasta@debian.org>
+
+Enable SELinux support on Linux-based architectures. Also contains patches from
+Russell Coker <russell@coker.com.au>.
+ 
+Bug-Debian: http://bugs.debian.org/315509
+Bug-Debian: http://bugs.debian.org/279429
+Bug-Debian: http://bugs.debian.org/264320
+Bug-Debian: http://bugs.debian.org/324017
+Bug-Debian: http://bugs.debian.org/325404
+Bug-Debian: http://bugs.debian.org/361458
+Bug-Debian: http://bugs.debian.org/383857
+Index: patched/Makefile
+===================================================================
+--- patched.orig/Makefile	2010-05-06 18:18:47.436487807 +0200
++++ patched/Makefile	2010-05-06 18:18:48.837561139 +0200
+@@ -55,7 +55,7 @@
+ INCLUDE		=	-I.
+ #INCLUDE	=
+ #<<need getopt()>>
+-LIBS		= $(PAM_LIBS)
++LIBS		= $(PAM_LIBS) $(SELINUX_LIBS)
+ #<<optimize or debug?>>
+ OPTIM		=	-O2
+ #OPTIM		=	-g
+@@ -74,7 +74,7 @@
+ # Allow override from command line
+ DEBUG_DEFS = -DDEBUGGING=0   
+ # The -DUSE_SIGCHLD is needed for the Alpha port
+-DEFS = -DDEBIAN -DUSE_SIGCHLD $(DEBUG_DEFS) $(PAM_DEFS)
++DEFS = -DDEBIAN -DUSE_SIGCHLD $(DEBUG_DEFS) $(PAM_DEFS) $(SELINUX_DEFS)
+ #(SGI IRIX systems need this)
+ #DEFS		=	-D_BSD_SIGNALS -Dconst=
+ #<<the name of the BSD-like install program>>
+Index: patched/cron.h
+===================================================================
+--- patched.orig/cron.h	2010-05-06 18:18:30.896560600 +0200
++++ patched/cron.h	2010-05-06 18:18:48.838561166 +0200
+@@ -40,6 +40,13 @@
+ #include "config.h"
+ #include "externs.h"
+ 
++#ifdef WITH_SELINUX
++#include <selinux/selinux.h>
++#endif
++
++#define SYSUSERNAME "root"
++
++
+ 	/* these are really immutable, and are
+ 	 *   defined for symbolic convenience only
+ 	 * TRUE, FALSE, and ERR must be distinct
+@@ -174,6 +181,9 @@
+ 	char		*name;
+ 	time_t		mtime;		/* last modtime of crontab */
+ 	entry		*crontab;	/* this person's crontab */
++#ifdef WITH_SELINUX
++        security_context_t scontext;    /* SELinux security context */
++#endif
+ } user;
+ 
+ typedef	struct _cron_db {
+@@ -220,7 +230,7 @@
+ 		**env_copy __P((char **)),
+ 		**env_set __P((char **, char *));
+ 
+-user		*load_user __P((int, struct passwd *, char *)),
++user		*load_user __P((int, struct passwd *, char *, char *, char *)),
+ 		*find_user __P((cron_db *, char *));
+ 
+ entry		*load_entry __P((FILE *, void (*)(),
+Index: patched/database.c
+===================================================================
+--- patched.orig/database.c	2010-05-06 18:18:36.431560887 +0200
++++ patched/database.c	2010-05-06 18:18:48.838561166 +0200
+@@ -97,7 +97,7 @@
+ 	new_db.head = new_db.tail = NULL;
+ 
+ 	if (syscron_stat.st_mtime) {
+-		process_crontab("root", "*system*",
++		process_crontab(SYSUSERNAME, "*system*",
+ 				SYSCRONTAB, &syscron_stat,
+ 				&new_db, old_db);
+ 	}
+@@ -261,7 +261,8 @@
+ 		free_user(u);
+ 		log_it(fname, getpid(), "RELOAD", tabname);
+ 	}
+-	u = load_user(crontab_fd, pw, fname);
++
++	u = load_user(crontab_fd, pw, uname, fname, tabname);
+ 	if (u != NULL) {
+ 		u->mtime = statbuf->st_mtime;
+ 		link_user(new_db, u);
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:48.182560885 +0200
++++ patched/do_command.c	2010-05-06 18:18:48.877435845 +0200
+@@ -42,6 +42,11 @@
+    }
+ #endif
+ 
++#ifdef WITH_SELINUX
++#include <selinux/selinux.h>
++/* #include <selinux/get_context_list.h> */
++#endif
++
+ 
+ static void		child_process __P((entry *, user *)),
+ 			do_univ __P((user *));
+@@ -332,6 +337,23 @@
+ 				_exit(OK_EXIT);
+ 			}
+ # endif /*DEBUGGING*/
++#ifdef WITH_SELINUX
++			if (is_selinux_enabled() > 0) {
++			    if (u->scontext != 0L) {
++                                if (setexeccon(u->scontext) < 0) {
++                                    if (security_getenforce() > 0) {
++                                        fprintf(stderr, "Could not set exec context to %s for user  %s\n", u->scontext,u->name);
++                                        _exit(ERROR_EXIT);
++                                    }
++			        }
++                            }
++			    else if(security_getenforce() > 0)
++			    {
++                                fprintf(stderr, "Error, must have a security context for the cron job when in enforcing mode.\nUser %s.\n", u->name);
++                                _exit(ERROR_EXIT);
++			    }
++			}
++#endif
+                         execle(shell, shell, "-c", e->cmd, (char *)0, jobenv);
+ 			fprintf(stderr, "%s: execle: %s\n", shell, strerror(errno));
+ 			_exit(ERROR_EXIT);
+Index: patched/user.c
+===================================================================
+--- patched.orig/user.c	2010-05-06 18:18:32.328436004 +0200
++++ patched/user.c	2010-05-06 18:18:48.877435845 +0200
+@@ -25,6 +25,107 @@
+ 
+ #include "cron.h"
+ 
++#ifdef WITH_SELINUX
++#include <selinux/context.h>
++#include <selinux/selinux.h>
++#include <selinux/flask.h>
++#include <selinux/av_permissions.h>
++#include <selinux/get_context_list.h>
++
++static int get_security_context(char *name, int crontab_fd, security_context_t
++                                *rcontext, char *tabname) {
++    security_context_t *context_list = NULL;
++    security_context_t current_con;
++    int list_count = 0;
++    security_context_t  file_context=NULL;
++    struct av_decision avd;
++    int retval=0;
++    char *seuser = NULL;
++    char *level = NULL;
++    int i;
++
++    if (name != NULL) {
++        if (getseuserbyname(name, &seuser, &level)) {
++            log_it(name, getpid(), "getseuserbyname FAILED", tabname);
++            return (security_getenforce() > 0);
++        }
++    }
++    else
++    {
++        seuser = strdup("system_u");
++    }
++
++    *rcontext = NULL;
++    if(getcon(&current_con)) {
++        log_it(name, getpid(), "Can't get current context", tabname);
++        return -1;
++    }
++    list_count = get_ordered_context_list_with_level(seuser, level, current_con, &context_list);
++    freecon(current_con);
++    free(seuser);
++    free(level);
++    if (list_count == -1) {
++        if (security_getenforce() > 0) {
++            log_it(name, getpid(), "No SELinux security context", tabname);
++            return -1;
++        } else {
++            log_it(name, getpid(),
++                   "No security context but SELinux in permissive mode,"
++                   " continuing", tabname);
++	    return 0;
++        }
++    }
++
++    if (fgetfilecon(crontab_fd, &file_context) < OK) {
++        if (security_getenforce() > 0) {
++            log_it(name, getpid(), "getfilecon FAILED", tabname);
++            freeconary(context_list);
++            return -1;
++        } else {
++            log_it(name, getpid(), "getfilecon FAILED but SELinux in "
++                   "permissive mode, continuing", tabname);
++            *rcontext = strdup(context_list[0]);
++            freeconary(context_list);
++            return 0;
++        }
++    }
++
++    /*
++     * Since crontab files are not directly executed,
++     * crond must ensure that the crontab file has
++     * a context that is appropriate for the context of
++     * the user cron job.  It performs an entrypoint
++     * permission check for this purpose.
++     */
++
++    for(i = 0; i < list_count; i++)
++    {
++        retval = security_compute_av(context_list[i],
++                                 file_context,
++                                 SECCLASS_FILE,
++                                 FILE__ENTRYPOINT,
++                                 &avd);
++        if(!retval && ((FILE__ENTRYPOINT & avd.allowed) == FILE__ENTRYPOINT)) {
++            *rcontext = strdup(context_list[i]);
++            freecon(file_context);
++            freeconary(context_list);
++            return 0;
++        }
++    }
++    freecon(file_context);
++    if (security_getenforce() > 0) {
++        log_it(name, getpid(), "ENTRYPOINT FAILED", tabname);
++        freeconary(context_list);
++        return -1;
++    } else {
++        log_it(name, getpid(), "ENTRYPOINT FAILED but SELinux in permissive mode, continuing", tabname);
++        *rcontext = strdup(context_list[0]);
++        freeconary(context_list);
++    }
++    return 0;
++}
++#endif
++
+ 
+ void
+ free_user(u)
+@@ -37,15 +138,21 @@
+ 		ne = e->next;
+ 		free_entry(e);
+ 	}
++#ifdef WITH_SELINUX
++	if (u->scontext)
++		freecon(u->scontext);
++#endif
+ 	free(u);
+ }
+ 
+ 
+ user *
+-load_user(crontab_fd, pw, name)
++load_user(crontab_fd, pw, uname, fname, tabname)
+ 	int		crontab_fd;
+ 	struct passwd	*pw;		/* NULL implies syscrontab */
+-	char		*name;
++	char		*uname;
++	char		*fname;
++	char		*tabname;
+ {
+ 	char	envstr[MAX_ENVSTR];
+ 	FILE	*file;
+@@ -67,13 +174,31 @@
+ 		errno = ENOMEM;
+ 		return NULL;
+ 	}
+-	if ((u->name = strdup(name)) == NULL) {
++	if ((u->name = strdup(fname)) == NULL) {
+ 		free(u);
+ 		errno = ENOMEM;
+ 		return NULL;
+ 	}
+ 	u->crontab = NULL;
+ 
++#ifdef WITH_SELINUX
++	u->scontext = NULL;
++        if (is_selinux_enabled() > 0) {
++            char *sname=uname;
++            if (pw==NULL) {
++                sname="system_u";
++            }
++            if (get_security_context(sname, crontab_fd, 
++                                     &u->scontext, tabname) != 0 ) {
++		u->scontext = NULL;
++                free_user(u);
++                u = NULL;
++                goto done;
++            }
++        }
++#endif
++
++
+ 	/* 
+ 	 * init environment.  this will be copied/augmented for each entry.
+ 	 */

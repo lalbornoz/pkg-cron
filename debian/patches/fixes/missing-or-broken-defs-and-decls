@@ -1,0 +1,27 @@
+Subject: Add or fix definitions and declarations
+Last-Update: 2010-04-11
+
+Add or fix definitions and declarations in headers which are NOT associated
+with a particular feature but considered either an omission, a bug or simply
+outdated.
+Index: patched/cron.h
+===================================================================
+--- patched.orig/cron.h	2010-05-06 18:18:16.151435957 +0200
++++ patched/cron.h	2010-05-06 18:18:23.394435942 +0200
+@@ -105,7 +105,7 @@
+ 
+ #if DEBUGGING
+ # define Debug(mask, message) \
+-			if ( (DebugFlags & (mask) ) == (mask) ) \
++			if ( (DebugFlags & (mask) )  ) \
+ 				printf message;
+ #else /* !DEBUGGING */
+ # define Debug(mask, message) \
+@@ -205,6 +205,7 @@
+ 		get_char __P((FILE *)),
+ 		get_string __P((char *, int, FILE *, char *)),
+ 		swap_uids __P((void)),
++		swap_uids_back __P((void)),
+ 		load_env __P((char *, FILE *)),
+ 		cron_pclose __P((FILE *)),
+ 		strcmp_until __P((char *, char *, int)),

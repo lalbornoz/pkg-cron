@@ -1,0 +1,53 @@
+Subject: Don't give root privileges on repeated edits
+Last-Update: 2010-04-11
+
+Because of an oversight, repeated edits wouldn't drop privileges prior to
+editing.
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:41.216560876 +0200
++++ patched/crontab.c	2010-05-06 18:18:41.972560882 +0200
+@@ -709,12 +709,21 @@
+ 	time_t	now = time(NULL);
+ 	char	**envp = env_init();
+ 	mode_t	um;
++	int	saved_uid;
+ 
+ 	if (envp == NULL) {
+ 		fprintf(stderr, "%s: Cannot allocate memory.\n", ProgramName);
+ 		return (-2);
+ 	}
+ 
++	/* Assume privilege.  This way we can only receive signals on our
++	   input - the ones listed below (or from root - root's problem, not
++	   ours). */
++	saved_uid = getuid();
++	if (setuid(geteuid()) < 0) {
++		perror("setuid");
++		return -2;
++	}
+ 
+ 	/* Assumes Linux-style signal handlers (takes int, returns void) */
+ 	/* Signal handlers, to ensure we do not leave temp files in the
+@@ -788,6 +797,9 @@
+ 	if (CheckErrorCount != 0) {
+ 		fprintf(stderr, "errors in crontab file, can't install.\n");
+ 		fclose(tmp);  unlink(tn);
++		/* Give up privilege, in case we loop. */
++		if (setreuid(saved_uid, -1) < 0)
++			return (-2);
+ 		return (-1);
+ 	}
+ 
+@@ -833,6 +845,11 @@
+ 
+ 	poke_daemon();
+ 
++	/* Give up privilege, just in case. */
++	/* Don't need to check for error; nothing happens beyond here but a log entry,
++	   and the failure message is incorrect after the rename above. */
++	setreuid(saved_uid, -1);
++
+ 	return (0);
+ }
+ 

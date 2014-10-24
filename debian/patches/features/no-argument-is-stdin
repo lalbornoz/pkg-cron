@@ -1,0 +1,23 @@
+Subject: crontab without argument is stdin
+Last-Update: 2010-04-11
+
+If crontab is run without argument then it will read stdin to replace the
+users crontab. This way it is POSIXLY_CORRECT.
+
+Bug-Debian: http://bugs.debian.org/514062
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:57.762561131 +0200
++++ patched/crontab.c	2010-05-06 18:19:00.402560845 +0200
+@@ -109,6 +109,9 @@
+ #if defined(BSD)
+ 	setlinebuf(stderr);
+ #endif
++	if (argv[1] == NULL) {
++		argv[1] = "-";
++	}	
+ 	parse_args(argc, argv);		/* sets many globals, opens a file */
+ 	set_cron_cwd();
+ 	if (!allowed(User)) {

@@ -1,0 +1,82 @@
+Subject: Auditlog support
+Last-Update: 2010-04-11
+
+Auditlog support.
+Index: patched/Makefile
+===================================================================
+--- patched.orig/Makefile	2010-05-06 18:18:48.837561139 +0200
++++ patched/Makefile	2010-05-06 18:18:53.301142936 +0200
+@@ -55,7 +55,7 @@
+ INCLUDE		=	-I.
+ #INCLUDE	=
+ #<<need getopt()>>
+-LIBS		= $(PAM_LIBS) $(SELINUX_LIBS)
++LIBS		= $(PAM_LIBS) $(SELINUX_LIBS) $(AUDIT_LIBS)
+ #<<optimize or debug?>>
+ OPTIM		=	-O2
+ #OPTIM		=	-g
+Index: patched/misc.c
+===================================================================
+--- patched.orig/misc.c	2010-05-06 18:18:52.595435667 +0200
++++ patched/misc.c	2010-05-06 18:18:53.301435633 +0200
+@@ -36,6 +36,9 @@
+ #include <string.h>
+ #include <fcntl.h>
+ #include <grp.h>
++#ifdef WITH_AUDIT
++#include <libaudit.h>
++#endif
+ #if defined(SYSLOG)
+ # include <syslog.h>
+ #endif
+@@ -461,7 +464,17 @@
+ {
+ 	static int	init = FALSE;
+ 	static FILE	*allow, *deny;
++	int     isallowed;
++
++        /* Root cannot be denied execution of cron jobs even if in the
++	 * 'DENY_FILE' so we return inmediately */
++        if (strcmp(username, ROOT_USER) == 0)
++                return (TRUE);
+ 
++	isallowed = FALSE;
++#if defined(ALLOW_ONLY_ROOT)
++	Debug(DMISC, "only root access is allowed")
++#else
+ 	if (!init) {
+ 		init = TRUE;
+ #if defined(ALLOW_FILE) && defined(DENY_FILE)
+@@ -474,16 +487,24 @@
+ #endif
+ 	}
+ 
+-	if (allow)
+-		return (in_file(username, allow));
+-	if (deny)
+-		return (!in_file(username, deny));
++	if (allow) 
++		isallowed = in_file(username, allow);
++	else
++		isallowed = TRUE; /* Allow access if ALLOW_FILE does not exist */
++	if (deny && !allow)
++		isallowed = !in_file(username, deny);
++#endif
+ 
+-#if defined(ALLOW_ONLY_ROOT)
+-	return (strcmp(username, ROOT_USER) == 0);
+-#else
+-	return TRUE;
++#ifdef WITH_AUDIT
++       /* Log an audit message if the user is rejected */ 
++       if (isallowed == FALSE) {
++               int audit_fd = audit_open();
++               audit_log_user_message(audit_fd, AUDIT_USER_START, "cron deny",
++                       NULL, NULL, NULL, 0);
++               close(audit_fd);
++       }
+ #endif
++	return isallowed;
+ }
+ 
+ 

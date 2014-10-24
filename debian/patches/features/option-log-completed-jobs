@@ -1,0 +1,77 @@
+Subject: Option to log completed jobs
+Last-Update: 2010-04-11
+
+Provide an option to log completed jobs if requested so.
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/cron.h
+===================================================================
+--- patched.orig/cron.h	2010-05-06 18:18:55.651562056 +0200
++++ patched/cron.h	2010-05-06 18:18:58.395435796 +0200
+@@ -292,7 +292,7 @@
+ 
+ int	stay_foreground;
+ int     lsbsysinit_mode;
+-
++int     log_level = 1;
+ char    cron_default_mail_charset[MAX_ENVSTR] = "";
+ 
+ # if DEBUGGING
+@@ -308,6 +308,7 @@
+ 		*DowNames[],
+ 		*ProgramName;
+ extern  int     lsbsysinit_mode;
++extern  int     log_level;
+ extern	int	LineNumber;
+ extern	time_t	StartTime;
+ extern  time_min timeRunning;
+Index: patched/cron.c
+===================================================================
+--- patched.orig/cron.c	2010-05-06 18:18:55.651562056 +0200
++++ patched/cron.c	2010-05-06 18:18:58.396435930 +0200
+@@ -467,7 +467,7 @@
+ 	stay_foreground = 0;
+         lsbsysinit_mode = 0;
+ 
+-	while (EOF != (argch = getopt(argc, argv, "lfx:"))) {
++	while (EOF != (argch = getopt(argc, argv, "lfx:L:"))) {
+ 		switch (argch) {
+ 		default:
+ 			usage();
+@@ -481,6 +481,9 @@
+                 case 'l':
+                     lsbsysinit_mode = 1;
+                     break;
++		case 'L':
++		    log_level = atoi(optarg);
++		    break;
+ 		}
+ 	}
+ }
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:54.665561020 +0200
++++ patched/do_command.c	2010-05-06 18:18:58.396435930 +0200
+@@ -248,7 +248,7 @@
+ 		 * the actual user command shell was going to get and the
+ 		 * PID is part of the log message.
+ 		 */
+-		/*local*/{
++		if (log_level >= 1) {
+ 			char *x = mkprints((u_char *)e->cmd, strlen(e->cmd));
+ 
+ 			log_it(usernm, getpid(), "CMD", x);
+@@ -592,6 +592,13 @@
+ 
+ 		} /*if data from grandchild*/
+ 
++		if (log_level >= 2) {
++			char *x = mkprints((u_char *)e->cmd, strlen(e->cmd));
++
++			log_it(usernm, getpid(), "END", x);
++			free(x);
++		}
++
+ 		Debug(DPROC, ("[%d] got EOF from grandchild\n", getpid()))
+ 
+ 		fclose(in);	/* also closes stdout_pipe[READ_PIPE] */

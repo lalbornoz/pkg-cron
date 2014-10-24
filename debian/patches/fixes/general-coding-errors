@@ -1,0 +1,161 @@
+Subject: General coding errors
+Last-Update: 2010-04-11
+
+These are mostly one-line fixes of obvious errors such as missing arguments,
+typos etc. Creating separate patches for them would be overkill.
+
+Bug-Debian: http://bugs.debian.org/53735
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/compat.c
+===================================================================
+--- patched.orig/compat.c	2010-05-06 18:18:16.073435740 +0200
++++ patched/compat.c	2010-05-06 18:18:24.437560974 +0200
+@@ -227,7 +227,7 @@
+ 		return -1;
+ 	}
+ 
+-	sprintf("%s=%s", name, value);
++	sprintf(tmp, "%s=%s", name, value);
+ 	return putenv(tmp);	/* intentionally orphan 'tmp' storage */
+ }
+ #endif
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:16.078436032 +0200
++++ patched/crontab.c	2010-05-06 18:18:24.437560974 +0200
+@@ -57,7 +57,7 @@
+ static	PID_T		Pid;
+ static	char		User[MAX_UNAME], RealUser[MAX_UNAME];
+ static	char		Filename[MAX_FNAME];
+-static	FILE		*NewCrontab;
++static	FILE		*NewCrontab = NULL;
+ static	int		CheckErrorCount;
+ static	enum opt_t	Option;
+ static	struct passwd	*pw;
+@@ -125,7 +125,7 @@
+ 					exitstatus = ERROR_EXIT;
+ 				break;
+ 	}
+-	exit(0);
++	exit(exitstatus);
+ 	/*NOTREACHED*/
+ }
+ 	
+@@ -227,7 +227,7 @@
+ 				perror(Filename);
+ 				exit(ERROR_EXIT);
+ 			}
+-			if (swap_uids() < OK) {
++			if (swap_uids_back() < OK) {
+ 				perror("swapping uids back");
+ 				exit(ERROR_EXIT);
+ 			}
+@@ -453,7 +453,7 @@
+ 		break;
+ 	case -1:
+ 		for (;;) {
+-			printf("Do you want to retry the same edit? ");
++			printf("Do you want to retry the same edit? (y/n) ");
+ 			fflush(stdout);
+ 			q[0] = '\0';
+ 			(void) fgets(q, sizeof q, stdin);
+@@ -473,7 +473,8 @@
+ 			ProgramName, Filename);
+ 		goto done;
+ 	default:
+-		fprintf(stderr, "%s: panic: bad switch() in replace_cmd()\n");
++		fprintf(stderr, "%s: panic: bad switch() in replace_cmd()\n",
++		    ProgramName);
+ 		goto fatal;
+ 	}
+  remove:
+@@ -574,7 +575,7 @@
+ 	if (chmod(tn, 0600) < OK)
+ #endif
+ 	{
+-		perror("chown");
++		perror("chmod");
+ 		fclose(tmp);  unlink(tn);
+ 		return (-2);
+ 	}
+Index: patched/misc.c
+===================================================================
+--- patched.orig/misc.c	2010-05-06 18:18:16.094435737 +0200
++++ patched/misc.c	2010-05-06 18:18:24.458435579 +0200
+@@ -308,7 +308,7 @@
+ 
+ 	ch = getc(file);
+ 	if (ch == '\n')
+-		Set_LineNum(LineNumber + 1)
++		Set_LineNum(LineNumber + 1);
+ 	return ch;
+ }
+ 
+@@ -322,7 +322,7 @@
+ {
+ 	ungetc(ch, file);
+ 	if (ch == '\n')
+-		Set_LineNum(LineNumber - 1)
++	       Set_LineNum(LineNumber - 1);
+ }
+ 
+ 
+@@ -533,7 +533,7 @@
+ #if DEBUGGING
+ 	if (DebugFlags) {
+ 		fprintf(stderr, "log_it: (%s %d) %s (%s)\n",
+-			username, pid, event, detail);
++			username, xpid, event, detail);
+ 	}
+ #endif
+ }
+Index: patched/env.c
+===================================================================
+--- patched.orig/env.c	2010-05-06 18:18:16.088435734 +0200
++++ patched/env.c	2010-05-06 18:18:24.458435579 +0200
+@@ -39,6 +39,9 @@
+ {
+ 	char	**p;
+ 
++	if(!envp)
++		return;
++
+ 	for (p = envp;  *p;  p++)
+ 		free(*p);
+ 	free(envp);
+@@ -168,7 +171,7 @@
+ 	register int	len = strlen(name);
+ 	register char	*p, *q;
+ 
+-	while (p = *envp++) {
++	while ((p = *envp++)) {
+ 		if (!(q = strchr(p, '=')))
+ 			continue;
+ 		if ((q - p) == len && !strncmp(p, name, len))
+Index: patched/popen.c
+===================================================================
+--- patched.orig/popen.c	2010-05-06 18:18:22.672435408 +0200
++++ patched/popen.c	2010-05-06 18:18:24.458435579 +0200
+@@ -62,7 +62,7 @@
+ 	extern char **glob(), **copyblk();
+ #endif
+ 
+-	if (*type != 'r' && *type != 'w' || type[1])
++	if ((*type != 'r' && *type != 'w') || type[1])
+ 		return(NULL);
+ 
+ 	if (!pids) {
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:22.672435408 +0200
++++ patched/do_command.c	2010-05-06 18:18:24.458435579 +0200
+@@ -331,7 +331,7 @@
+ 		register int	ch = getc(in);
+ 
+ 		if (ch != EOF) {
+-			register FILE	*mail;
++			register FILE	*mail = NULL;
+ 			register int	bytes = 1;
+ 			int		status = 0;
+ 

@@ -1,0 +1,119 @@
+Subject: Drop privileges where appropriate
+Last-Update: 2010-04-11
+
+Ensure that we drop privileges when running commands on behalf of a user.
+
+Bug-Debian: http://bugs.debian.org/528434
+Bug-Debian: http://bugs.debian.org/85609
+Bug-Debian: http://bugs.debian.org/86775
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/cron.h
+===================================================================
+--- patched.orig/cron.h	2010-05-06 18:18:28.216436280 +0200
++++ patched/cron.h	2010-05-06 18:18:30.896560600 +0200
+@@ -226,7 +226,7 @@
+ entry		*load_entry __P((FILE *, void (*)(),
+ 				 struct passwd *, char **));
+ 
+-FILE		*cron_popen __P((char *, char *));
++FILE		*cron_popen __P((char *, char *, entry *));
+ 
+ 
+ 				/* in the C tradition, we only create
+Index: patched/popen.c
+===================================================================
+--- patched.orig/popen.c	2010-05-06 18:18:25.171561124 +0200
++++ patched/popen.c	2010-05-06 18:18:30.896560600 +0200
+@@ -48,8 +48,9 @@
+ static int fds;
+ 
+ FILE *
+-cron_popen(program, type)
++cron_popen(program, type, e)
+ 	char *program, *type;
++	entry *e;
+ {
+ 	register char *cp;
+ 	FILE *iop;
+@@ -120,6 +121,34 @@
+ 			}
+ 			(void)close(pdes[1]);
+ 		}
++ 		/* set our directory, uid and gid.  Set gid first, since once
++         * we set uid, we've lost root privleges.
++         */
++        if (setgid(e->gid) !=0) {
++          char msg[256];
++          snprintf(msg, 256, "popen:setgid(%lu) failed: %s",
++               (unsigned long) e->gid, strerror(errno));
++          log_it("CRON",getpid(),"error",msg);
++          exit(ERROR_EXIT);
++        }
++# if defined(BSD) || defined(POSIX)
++		if (initgroups(env_get("LOGNAME", e->envp), e->gid) !=0) {
++		  char msg[256];
++		  snprintf(msg, 256, "popen:initgroups(%lu) failed: %s",
++			   (unsigned long) e->gid, strerror(errno));
++		  log_it("CRON",getpid(),"error",msg);
++		  exit(ERROR_EXIT);
++                }
++# endif
++		if (setuid(e->uid) !=0) {
++		  char msg[256];
++		  snprintf(msg, 256, "popen: setuid(%lu) failed: %s",
++			   (unsigned long) e->uid, strerror(errno)); 
++		  log_it("CRON",getpid(),"error",msg);
++		  exit(ERROR_EXIT);
++		}	
++		chdir(env_get("HOME", e->envp));
++
+ #if WANT_GLOBBING
+ 		execvp(gargv[0], gargv);
+ #else
+Index: patched/do_command.c
+===================================================================
+--- patched.orig/do_command.c	2010-05-06 18:18:29.548561115 +0200
++++ patched/do_command.c	2010-05-06 18:18:30.896560600 +0200
+@@ -210,11 +210,29 @@
+ 		/* set our directory, uid and gid.  Set gid first, since once
+ 		 * we set uid, we've lost root privledges.
+ 		 */
+-		setgid(e->gid);
++		if (setgid(e->gid) !=0) {
++		  char msg[256];
++		  snprintf(msg, 256, "do_command:setgid(%lu) failed: %s",
++			   (unsigned long) e->gid, strerror(errno));
++		  log_it("CRON",getpid(),"error",msg);
++		  exit(ERROR_EXIT);
++		}
+ # if defined(BSD) || defined(POSIX)
+-		initgroups(env_get("LOGNAME", e->envp), e->gid);
++		if (initgroups(env_get("LOGNAME", e->envp), e->gid) !=0) {
++		  char msg[256];
++		  snprintf(msg, 256, "do_command:initgroups(%lu) failed: %s",
++			   (unsigned long) e->gid, strerror(errno));
++		  log_it("CRON",getpid(),"error",msg);
++		  exit(ERROR_EXIT);
++		}
+ # endif
+-		setuid(e->uid);		/* we aren't root after this... */
++		if (setuid(e->uid) !=0) { /* we aren't root after this... */
++		  char msg[256];
++		  snprintf(msg, 256, "do_command:setuid(%lu) failed: %s",
++			   (unsigned long) e->uid, strerror(errno)); 
++		  log_it("CRON",getpid(),"error",msg);
++		  exit(ERROR_EXIT);
++		}	
+ 		chdir(env_get("HOME", e->envp));
+ 
+ 		/* exec the command.
+@@ -371,7 +389,7 @@
+ 				(void) gethostname(hostname, MAXHOSTNAMELEN);
+ 				(void) snprintf(mailcmd, sizeof(mailcmd),
+ 				    MAILARGS, MAILCMD, mailto);
+-				if (!(mail = cron_popen(mailcmd, "w"))) {
++				if (!(mail = cron_popen(mailcmd, "w", e))) {
+ 					perror(MAILCMD);
+ 					(void) _exit(ERROR_EXIT);
+ 				}

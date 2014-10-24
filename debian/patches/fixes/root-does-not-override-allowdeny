@@ -1,0 +1,40 @@
+Subject: Do not allow override of cron.{allow,deny} by root
+Author: Javier Fernández-Sanguino Peña <jfs@debian.org>
+Last-Update: 2010-04-11
+
+Prevent root from using "crontab -u" with a user not allowed to use cron via
+cron.{allow,deny}. (Actually, root may not do that anyway. This just prints a
+different error message).
+
+Bug-Debian: http://bugs.debian.org/505288
+
+Acked-by: Christian Kastner <debian@kvr.at>
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:33.711435964 +0200
++++ patched/crontab.c	2010-05-06 18:18:34.351435790 +0200
+@@ -105,11 +105,19 @@
+ 	set_cron_uid();
+ 	set_cron_cwd();
+ 	if (!allowed(User)) {
+-		fprintf(stderr,
+-			"You (%s) are not allowed to use this program (%s)\n",
+-			User, ProgramName);
+-		fprintf(stderr, "See crontab(1) for more information\n");
+-		log_it(RealUser, Pid, "AUTH", "crontab command not allowed");
++                if ( getuid() != 0 ) {
++                    fprintf(stderr,
++                            "You (%s) are not allowed to use this program (%s)\n",
++                            User, ProgramName);
++                    fprintf(stderr, "See crontab(1) for more information\n");
++                    log_it(RealUser, Pid, "AUTH", "crontab command not allowed");
++                } else {
++                /* If the user is not allowed but root is running the
++                 * program warn but do not log */
++                    fprintf(stderr,
++                            "The user %s cannot use this program (%s)\n",
++                            User, ProgramName);
++                }
+ 		exit(ERROR_EXIT);
+ 	}
+ 	exitstatus = OK_EXIT;

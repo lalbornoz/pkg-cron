@@ -1,0 +1,90 @@
+Subject: Better debugging support
+Last-Update: 2010-04-11
+
+Extend debugging options, etc...
+Index: patched/Makefile
+===================================================================
+--- patched.orig/Makefile	2010-05-06 18:18:21.821436206 +0200
++++ patched/Makefile	2010-05-06 18:18:44.879435811 +0200
+@@ -71,9 +71,10 @@
+ #<<want to use a nonstandard CC?>>
+ #CC		=	vcc
+ #<<manifest defines>>
+-DEFS		=
++# Allow override from command line
++DEBUG_DEFS = -DDEBUGGING=0   
+ # The -DUSE_SIGCHLD is needed for the Alpha port
+-DEFS = -DDEBIAN -DUSE_SIGCHLD
++DEFS = -DDEBIAN -DUSE_SIGCHLD $(DEBUG_DEFS)
+ #(SGI IRIX systems need this)
+ #DEFS		=	-D_BSD_SIGNALS -Dconst=
+ #<<the name of the BSD-like install program>>
+Index: patched/config.h
+===================================================================
+--- patched.orig/config.h	2010-05-06 18:18:31.635435778 +0200
++++ patched/config.h	2010-05-06 18:18:44.880437493 +0200
+@@ -29,6 +29,7 @@
+  */
+ 
+ #ifndef DEBUGGING
++#error DEBUGGING not defined
+ #define DEBUGGING 1	/* 1 or 0 -- do you want debugging code built in? */
+ #endif
+ 
+Index: patched/cron.c
+===================================================================
+--- patched.orig/cron.c	2010-05-06 18:18:38.503560917 +0200
++++ patched/cron.c	2010-05-06 18:18:44.880437493 +0200
+@@ -48,7 +48,16 @@
+ 
+ static void
+ usage() {
+-	fprintf(stderr, "usage:  %s [-x debugflag[,...]]\n", ProgramName);
++#if DEBUGGING
++	char **dflags;
++
++	fprintf(stderr, "usage:  %s [-x [", ProgramName);
++	for(dflags = DebugFlagNames; *dflags; dflags++)
++		fprintf(stderr, "%s%s", *dflags, dflags[1] ? "," : "]");
++	fprintf(stderr, "]\n");
++#else
++	fprintf(stderr, "usage: %s\n", ProgramName);
++#endif
+ 	exit(ERROR_EXIT);
+ }
+ 
+Index: patched/crontab.c
+===================================================================
+--- patched.orig/crontab.c	2010-05-06 18:18:43.421561039 +0200
++++ patched/crontab.c	2010-05-06 18:18:44.880437493 +0200
+@@ -148,6 +148,12 @@
+ 	/*NOTREACHED*/
+ }
+ 	
++#if DEBUGGING
++char *getoptarg = "u:lerix:";
++#else
++char *getoptarg = "u:leri";
++#endif
++
+ 
+ static void
+ parse_args(argc, argv)
+@@ -170,12 +176,16 @@
+ 	}
+ 	Filename[0] = '\0';
+ 	Option = opt_unknown;
+-	while (EOF != (argch = getopt(argc, argv, "u:lerx:"))) {
++
++	while (EOF != (argch = getopt(argc, argv, getoptarg))) {
+ 		switch (argch) {
++#if DEBUGGING
+ 		case 'x':
+ 			if (!set_debug_flags(optarg))
+ 				usage("bad debug option");
++			usage("unrecognized option");
+ 			break;
++#endif
+ 		case 'u':
+ 			if (!(pw = getpwnam(optarg)))
+ 			{
