@@ -43,7 +43,11 @@ cron (3.0pl1-125) unstable; urgency=medium
       adjusting the Content-Transfer-Encoding header accordingly.
       Closes: #694686
 
- -- Christian Kastner <debian@kvr.at>  Fri, 10 Oct 2014 15:58:18 +0200
+  [ Javier Fernández-Sanguino ]
+  * Change systemd definition in order for the daemon to read an honor
+    /etc/default/cron (Closes: #754279)
+
+ -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Fri, 24 Oct 2014 16:17:56 +0200
 
 cron (3.0pl1-124.2) unstable; urgency=medium
 
