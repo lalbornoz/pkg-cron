@@ -4,7 +4,7 @@ Documentation=man:cron(8)
 
 [Service]
 EnvironmentFile=-/etc/default/cron
-ExecStart=/usr/sbin/cron -f $READ_ENV $EXTRA_OPTS
+ExecStart=/usr/sbin/cron -f $EXTRA_OPTS
 IgnoreSIGPIPE=false
 
 [Install]

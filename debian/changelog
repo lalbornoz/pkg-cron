@@ -1,3 +1,10 @@
+cron (3.0pl1-127) unstable; urgency=medium
+
+  * Drop $READ_ENV from cron's command line. It does not belong there.
+    Closes: #766779
+
+ -- Christian Kastner <debian@kvr.at>  Sat, 25 Oct 2014 20:47:09 +0200
+
 cron (3.0pl1-126) unstable; urgency=low
 
   * Packaging (general): removed unused files from the source that had been
