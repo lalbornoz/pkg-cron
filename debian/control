@@ -3,7 +3,7 @@ Section: admin
 Priority: important
 Maintainer: Javier Fernández-Sanguino Peña <jfs@debian.org>
 Uploaders: Christian Kastner <debian@kvr.at>
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Build-Depends:
     debhelper (>= 9),
     libpam0g-dev,
