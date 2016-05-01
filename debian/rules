@@ -75,9 +75,5 @@ override_dh_install:
 	install -m 644 debian/placeholder debian/cron/etc/cron.monthly/.placeholder
 
 
-override_dh_installinit:
-	dh_installinit -- start 89 2 3 4 5 .
-
-
 override_dh_compress:
 	dh_compress -Xexamples
