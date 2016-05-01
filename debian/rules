@@ -22,7 +22,7 @@ export CC=$(DEB_HOST_GNU_TYPE)-gcc
 endif
 
 # Standard compiler flags 
-CFLAGS += -Wall -Wno-unused -Wno-comment
+export DEB_CFLAGS_MAINT_APPEND += -Wall -Wno-unused -Wno-comment
 
 # debug is disabled by default
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
