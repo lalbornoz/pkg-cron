@@ -21,8 +21,9 @@ ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
 export CC=$(DEB_HOST_GNU_TYPE)-gcc
 endif
 
-# Standard compiler flags 
+# Customize build flags
 export DEB_CFLAGS_MAINT_APPEND += -Wall -Wno-unused -Wno-comment
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 # debug is disabled by default
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
