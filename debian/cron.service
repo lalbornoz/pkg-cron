@@ -1,6 +1,7 @@
 [Unit]
 Description=Regular background program processing daemon
 Documentation=man:cron(8)
+After=remote-fs.target
 
 [Service]
 EnvironmentFile=-/etc/default/cron
