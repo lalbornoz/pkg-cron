@@ -154,7 +154,7 @@ cron (3.0pl1-121) unstable; urgency=low
     - Removed, no longer required
   * crontab.5:
     - Escape the '%' in the examples so that they can work when copied over to
-      crontab (Closes: #642309)
+      crontab (Closes: #642309) (LP: #1110147)
     - Remove tabs from manpage since they are not formatted properly in the
       nonfill area
   * cron.8, crontab.1, crontab.5:
