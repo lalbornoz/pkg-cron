@@ -263,6 +263,23 @@ MAILTO=paul
 # Run on every second Saturday of the month
 0 4 8-14 * *    test $(date +\\%u) \-eq 6 && echo "2nd Saturday"
 .fi
+
+.PP
+All the above examples run non-interactive programs. If you wish to run a 
+program that interacts with the user's desktop you have to make sure the proper
+environment variable 
+.I DISPLAY
+is set.
+
+.\" Note: Based on some web searches, below example might not fully
+.\" work in all systems, as notify-send might require also 
+.\" to have knowledge of the dbus session in use (through the environment)
+.\" However, adding that code here is an overkill
+.nf
+# Execute a program and run a notification every day at 10:00 am
+0 10 * * *  $HOME/bin/program | DISPLAY=:0 notify-send "Program run" "$(cat)"
+.fi
+
 .SH EXAMPLE SYSTEM CRON FILE
 
 The following lists the content of a regular system-wide crontab file. Unlinke a
