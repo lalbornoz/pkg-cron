@@ -34,7 +34,7 @@ allow file:    /etc/cron.allow
 deny file:     /etc/cron.deny
 
 This package is now maintained by Javier Fernández-Sanguino Peña
-<jfs@computer.org> and Christian Kastner <ckk@debian.org>
+<jfs@debian.org> and Christian Kastner <ckk@debian.org>
 
 Historical note: The old subversion repository from before the
 migration to git can be found here:
