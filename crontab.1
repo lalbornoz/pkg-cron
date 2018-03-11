@@ -157,6 +157,16 @@ cron requires that each entry in a crontab end in a newline character. If the
 last entry in a crontab is missing the newline, cron will consider the crontab
 (at least partially) broken and refuse to install it.
 
+.SH DIAGNOSTICS
+The files under 
+.I
+/var/spool/cron/crontabs
+are named based on the user's account name. Crontab jobs will not be run for
+users whose accounts have been renamed either due to changes in the local system
+or because they are managed through a central user database (external to the system,
+for example an LDAP directory).
+
+
 .SH AUTHOR
 Paul Vixie <paul@vix.com> is the author of 
 .I cron
