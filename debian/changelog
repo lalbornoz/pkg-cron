@@ -3,6 +3,11 @@ cron (3.0pl1-129) unstable; urgency=medium
   * Acknowledge NMU
   * Make sure cron is started last and stopped first, with patch provided by
   Harald Dunke (Closes: #767016)
+  [ Christian Kastner ]
+  * Fix for CVE-2017-9525: group crontab to root escalation via postinst
+  as described by Alexander Peslyak (Solar Designer) in
+  http://www.openwall.com/lists/oss-security/2017/06/08/3
+  (Closes: 864466)
 
  -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Sun, 11 Mar 2018 22:38:06 +0100
 

@@ -60,8 +60,32 @@ if [ -d $crondir/crontabs ] ; then
     # It has been disabled to suit cron alternative such as bcron. 
     cd $crondir/crontabs
     set +e
-    ls -1 | xargs -r -n 1 --replace=xxx  chown 'xxx:crontab' 'xxx'
-    ls -1 | xargs -r -n 1 chmod 600
+
+    # Iterate over each entry in the spool directory, perform some sanity
+    # checks (see CVE-2017-9525), and chown/chgroup the crontabs
+    for tab_name in *
+    do
+        tab_type=`stat -c '%F' "$tab_name"`
+        tab_links=`stat -c '%h' "$tab_name"`
+        tab_owner=`stat -c '%U' "$tab_name"`
+
+        if [ "$tab_type" != "regular file" -a "$tab_type" != "regular empty file" ]
+        then
+            echo "Warning: $tab_name is not a regular file!"
+            continue
+        elif [ "$tab_links" -ne 1 ]
+        then
+            echo "Warning: $tab_name has more than one hard link!"
+            continue
+        elif [ "$tab_name" != "$tab_owner" ]
+        then
+            echo "Warning: $tab_name name differs from owner $tab_owner!"
+            continue
+        fi
+
+		chown "$tab_owner:crontab" "$tab_name"
+		chmod 600 "$tab_name"
+    done
     set -e
 fi
 
