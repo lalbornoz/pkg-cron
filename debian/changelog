@@ -1,3 +1,11 @@
+cron (3.0pl1-128.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Properly transition system jobs to system_cronjob_t SELinux context and
+    stop relying on refpolicy specific identifiers (Closes: #857662)
+
+ -- Laurent Bigonville <bigon@debian.org>  Tue, 03 Oct 2017 15:38:27 +0200
+
 cron (3.0pl1-128) unstable; urgency=medium
 
   * d/cron.service: Use KillMode=process to kill only the daemon.
