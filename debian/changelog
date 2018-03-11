@@ -1,3 +1,11 @@
+cron (3.0pl1-129) unstable; urgency=medium
+
+  * Acknowledge NMU
+  * Make sure cron is started last and stopped first, with patch provided by
+  Harald Dunke (Closes: #767016)
+
+ -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Sun, 11 Mar 2018 22:38:06 +0100
+
 cron (3.0pl1-128.1) unstable; urgency=medium
 
   * Non-maintainer upload.
