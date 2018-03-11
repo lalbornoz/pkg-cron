@@ -2,10 +2,13 @@ cron (3.0pl1-129) unstable; urgency=medium
 
   * Acknowledge NMU
   * debian/cron.init, debian/cron.service: Make sure cron is started last and
-    stopped first, with patch provided by Harald Dunke (Closes: #767016) 
-    (LP: #1593317)
-  * crontab.1:  Document limitation due to account renaming as described in
+    stopped first, with patch provided by Harald Dunke 
+    (Closes: #767016, #801384, #783665) (LP: #1593317)
+  * crontab.1: Document limitation due to account renaming as described in
     Ubuntu's bug 73398
+  * crontab.5: Document the need to set the DISPLAY environment when running
+    scheduled tasks that interact with the user's desktop environment 
+    (LP: #891869)
 
   [ Christian Kastner ]
   * debian/postinst: Fix for CVE-2017-9525: group crontab to root escalation via postinst
