@@ -10,6 +10,7 @@ cron (3.0pl1-129) unstable; urgency=medium
     scheduled tasks that interact with the user's desktop environment 
     (LP: #891869)
   * cron.8: Fix typo (Closes: 819832)
+  * debian/control: Replace dh-systemd dependency with debhelper (lintian fix)
 
   [ Christian Kastner ]
   * debian/postinst: Fix for CVE-2017-9525: group crontab to root escalation via postinst
