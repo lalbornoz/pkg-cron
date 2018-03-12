@@ -65,6 +65,7 @@ if [ -d $crondir/crontabs ] ; then
     # checks (see CVE-2017-9525), and chown/chgroup the crontabs
     for tab_name in *
     do
+        [ "$tab_name" = "*" ] && continue
         tab_type=`stat -c '%F' "$tab_name"`
         tab_links=`stat -c '%h' "$tab_name"`
         tab_owner=`stat -c '%U' "$tab_name"`
