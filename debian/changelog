@@ -1,3 +1,32 @@
+cron (3.0pl1-130) UNRELEASED; urgency=medium
+
+  * debian/postinst: Do not do check if /var/spool/cron/crontabs is empty
+    (Closes: 892720, 892721, 892724)
+  * debian/cron.service: Add dependency on nss-user-lookup.target in the
+    definition which properly fixes the issues when cron is started 
+    before centralised user repositories are available (e.g. LDAP
+    or Active Directory). This should avoid errors in syslog similar to the
+    following: "crond[PID]: (CRON) bad username (/etc/cron.d/JOBNAME)"
+    Also remove Type=idle, which was not the correct fix to apply.
+    (Closes: #767016, #801384, #783665) (LP: #1593317)
+  * debian/cron.service: Add automatic restart on failure (Closes: #834728)
+  * crontab.5: 
+     - Add improvements and fixes to manpage provided by Philip Hands 
+      (Closes: #792572)
+     - Document that system wide defaults run from 6 am to 7 am.
+      (Closes: #757191)
+     - Document how asterisks are processed in dom and dow fields using
+       patch provided by Christian Pekeler (Closes: #840601)
+       Also see https://treats.wdt.io/cron-bug.html
+  * debian/crontab.main, crontab.5: Add documentation comments similarly as to
+    how Fedora / Red Hat Enterprise Linux documents (crontab package). This
+    comments more descriptive and provides inexperienced users with a better
+    understanding of the syntax.  (Closes: #705570)
+
+
+
+ -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Mon, 12 Mar 2018 22:00:01 +0100
+
 cron (3.0pl1-129) unstable; urgency=medium
 
   * Acknowledge NMU
