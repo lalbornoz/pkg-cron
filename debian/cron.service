@@ -8,6 +8,7 @@ EnvironmentFile=-/etc/default/cron
 ExecStart=/usr/sbin/cron -f $EXTRA_OPTS
 IgnoreSIGPIPE=false
 KillMode=process
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
