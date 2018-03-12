@@ -1,6 +1,6 @@
-cron (3.0pl1-130) UNRELEASED; urgency=medium
+cron (3.0pl1-130) unstable; urgency=medium
 
-  * debian/postinst: Do not do check if /var/spool/cron/crontabs is empty
+  * debian/postinst: Do not do check if /var/spool/cron/crontabs if empty
     (Closes: 892720, 892721, 892724)
   * debian/cron.service: Add dependency on nss-user-lookup.target in the
     definition which properly fixes the issues when cron is started 
