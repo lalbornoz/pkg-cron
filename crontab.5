@@ -302,6 +302,12 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 52 6 1 * *  root  test \-x /usr/sbin/anacron || ( cd / && run-parts \-\-report /etc/cron.monthly )
 #
 .fi
+
+Note that all the system-wide tasks will run, by default, from 6 am to 7 am. In
+the case of systems that are not powered on during that period of time, only
+the hourly tasks will be executed unless the defaults above are changed.
+
+
 .SH SEE ALSO
 cron(8), crontab(1)
 .SH EXTENSIONS
