@@ -23,8 +23,6 @@ cron (3.0pl1-130) UNRELEASED; urgency=medium
     comments more descriptive and provides inexperienced users with a better
     understanding of the syntax.  (Closes: #705570)
 
-
-
  -- Javier Fernández-Sanguino Peña <jfs@debian.org>  Mon, 12 Mar 2018 22:00:01 +0100
 
 cron (3.0pl1-129) unstable; urgency=medium
@@ -55,6 +53,7 @@ cron (3.0pl1-128.1) unstable; urgency=medium
   * Non-maintainer upload.
   * Properly transition system jobs to system_cronjob_t SELinux context and
     stop relying on refpolicy specific identifiers (Closes: #857662)
+  * d/cron.service: Add a dependency on remote-fs.target (Closes: #815088)
 
  -- Laurent Bigonville <bigon@debian.org>  Tue, 03 Oct 2017 15:38:27 +0200
 
