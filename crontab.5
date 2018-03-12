@@ -71,7 +71,7 @@ will not work as you might expect. And neither will this work
     B=2
     C=$A $B
 .PP
-There will not be any subsitution for the defined variables in the
+There will not be any substitution for the defined variables in the
 last value.
 .PP
 An alternative for setting up the commands path is using the fact that
@@ -121,7 +121,7 @@ By default, cron will send mail using the mail "Content-Type:" header of
 "text/plain" with the "charset=" parameter set to the charmap / codeset of the
 locale in which
 .IR crond (8)
-is started up - ie. either the default system locale, if no LC_* environment
+is started up - i.e. either the default system locale, if no LC_* environment
 variables are set, or the locale specified by the LC_* environment variables 
 ( see
 .IR locale (7) ).
@@ -282,7 +282,7 @@ is set.
 
 .SH EXAMPLE SYSTEM CRON FILE
 
-The following lists the content of a regular system-wide crontab file. Unlinke a
+The following lists the content of a regular system-wide crontab file. Unlike a
 user's crontab, this file has the username field, as used by /etc/crontab.
 
 .nf
@@ -339,12 +339,12 @@ of the crontab tasks themselves.
 
 The 
 .I crontab
-syntax does not make it possible to define all possible periods one could 
-image off. For example, it is not straightforward to define the last
-weekday of a month. If a task needs to be run in a specific period of time
-that cannot be defined in the 
+syntax does not make it possible to define all possible periods one can
+imagine. For example, it is not straightforward to define the last
+weekday of a month.
+To have a task run in a time period that cannot be defined using
 .I crontab
-syntaxs the best approach would be to have the program itself check the
+syntax, the best approach would be to have the program itself check the
 date and time information and continue execution only if the period
 matches the desired one.
 
@@ -357,13 +357,13 @@ For example, to run a program the last Saturday of every month you could use
 the following wrapper code:
 
 .nf
-0 4 * * Sat   [ "$(date +\\%e)" = "`ncal | grep $(date +\\%a | sed \-e 's/.$//') | sed \-e 's/^.*\\s\\([0-9]\\+\\)\\s*$/\\1/'`" ] && echo "Last Saturday" && program_to_run
+0 4 * * Sat   [ "$(date +\\%e)" = "$(LANG=C ncal | sed -n 's/^Sa .* \\([0-9]\\+\\) *$/\\1/p')" ] && echo "Last Saturday" && program_to_run
 .fi
 
 
 .SH DIAGNOSTICS
 cron requires that each entry in a crontab end in a newline character. If the
-last entry in a crontab is missing a newline (ie, terminated by EOF), cron will
+last entry in a crontab is missing a newline (i.e. terminated by EOF), cron will
 consider the crontab (at least partially) broken. A warning will be written to
 syslog.
 
