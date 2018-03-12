@@ -2,14 +2,18 @@ cron (3.0pl1-130) unstable; urgency=medium
 
   * debian/postinst: Do not do check if /var/spool/cron/crontabs if empty
     (Closes: 892720, 892721, 892724)
-  * debian/cron.service: Add dependency on nss-user-lookup.target in the
-    definition which properly fixes the issues when cron is started 
-    before centralised user repositories are available (e.g. LDAP
-    or Active Directory). This should avoid errors in syslog similar to the
-    following: "crond[PID]: (CRON) bad username (/etc/cron.d/JOBNAME)"
-    Also remove Type=idle, which was not the correct fix to apply.
-    (Closes: #767016, #801384, #783665) (LP: #1593317)
-  * debian/cron.service: Add automatic restart on failure (Closes: #834728)
+  * debian/cron.service: 
+      - Add dependency on nss-user-lookup.target in the definition which
+        properly fixes the issues when cron is started before centralised user
+        repositories are available (e.g. LDAP or Active Directory). This
+        should avoid errors in syslog similar to the following: 
+        "crond[PID]: (CRON) bad username (/etc/cron.d/JOBNAME)" 
+        (Closes: #767016, #801384, #783665) (LP: #1593317)
+      - Also remove Type=idle change added in previous upload, which was not
+        the correct fix to apply.
+      - Add automatic restart on failure (Closes: #834728)
+  * debian/cron.init: Revert previous change - instead of adding $all, add sssd
+    to the services that should be started/stopped before/after cron.
   * crontab.5: 
      - Add improvements and fixes to manpage provided by Philip Hands 
       (Closes: #792572)
