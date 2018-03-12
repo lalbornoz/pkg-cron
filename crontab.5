@@ -200,7 +200,7 @@ lines, like the shell's trailing "\\".
 .PP
 Note: The day of a command's execution can be specified by two
 fields \(em day of month, and day of week.  If both fields are
-restricted (i.e., aren't *), the command will be run when
+restricted (i.e., don't start with *), the command will be run when
 .I either
 field matches the current time.  For example,
 .br
@@ -259,7 +259,9 @@ MAILTO=paul
 # run at 10 pm on weekdays, annoy Joe
 0 22 * * 1-5    mail \-s "It's 10pm" joe%Joe,%%Where are your kids?%
 23 0-23/2 * * * echo "run 23 minutes after midn, 2am, 4am ..., everyday"
-5 4 * * sun     echo "run at 5 after 4 every sunday"
+5 4 * * sun     echo "run at 5 after 4 every Sunday"
+0 */4 1 * mon   echo "run every 4th hour on the 1st and on every Monday"
+0 0 */2 * sun   echo "run at midn on every Sunday that's an uneven date"
 # Run on every second Saturday of the month
 0 4 8-14 * *    test $(date +\\%u) \-eq 6 && echo "2nd Saturday"
 .fi
@@ -350,6 +352,15 @@ environment variable in his
 this will affect only the commands executed in the crontab, not the execution
 of the crontab tasks themselves.
 
+POSIX specifies that the day of month and the day of week fields both need to
+match the current time if either of them
+.I is
+a *. However, this implementation only checks if the
+.I first character
+is a *. This is why "0 0 */2 * sun" runs every Sunday that's an
+uneven date while the POSIX standard would have it run every Sunday and on
+every uneven date.
+
 The 
 .I crontab
 syntax does not make it possible to define all possible periods one can
@@ -384,4 +395,5 @@ syslog.
 Paul Vixie <paul@vix.com> is the author of 
 .I cron
 and original creator of this manual page. This page has also been modified for
-Debian by Steve Greenland, Javier Fernandez-Sanguino and Christian Kastner.
+Debian by Steve Greenland, Javier Fernandez-Sanguino, Christian Kastner and
+Christian Pekeler.
